@@ -11,16 +11,16 @@ class VoteService(
     private val repository: VoteRepository,
     private val userRepository: UserRepository,
 ) {
-    final fun getVote(): Vote = repository.findById(0).run {
-        return if (isPresent) get() else {
-            repository.save(Vote())
-            getVote()
-        }
-    }
+    fun getVote() = repository.findFirstBy() ?: repository.save(Vote())
 
     fun vote(option: VoteOption, cpf: String): Boolean {
-        userRepository.findByCpf(cpf)?.apply {
-            repository.save(getVote().update(option, vote))
+        userRepository.findByCpf(cpf)?.run {
+            val retrievedVote = repository.findFirstBy() ?: Vote()
+            val updatedVote = retrievedVote.update(option, vote!!)
+            repository.save(updatedVote)
+
+            vote = option
+            userRepository.save(this)
         } ?: return false
         return true
     }

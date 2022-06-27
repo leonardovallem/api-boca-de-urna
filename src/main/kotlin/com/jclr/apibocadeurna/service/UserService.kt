@@ -13,6 +13,8 @@ class UserService(private val repository: UserRepository) {
 
     fun get(email: String) = repository.findByEmail(email)
 
+    fun getByCpf(cpf: String) = repository.findByCpf(cpf)
+
     fun correctPassword(password: String, user: User): Boolean {
         // TODO hash password
         return password == user.password

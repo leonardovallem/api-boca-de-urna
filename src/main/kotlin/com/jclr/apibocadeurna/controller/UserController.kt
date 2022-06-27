@@ -6,26 +6,41 @@ import com.jclr.apibocadeurna.service.UserService
 import com.jclr.apibocadeurna.util.responseOf
 import com.jclr.apibocadeurna.util.success
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/user")
 class UserController(private val service: UserService) {
-    @PostMapping
-    fun insert(user: User) = if (service.cpfAlreadyRegistered(user.cpf)) responseOf(
-        403, "CPF already registered"
+    @PostMapping("/register")
+    @CrossOrigin(origins = ["*"], allowedHeaders = ["*"])
+    fun insert(@RequestBody user: User) = if (service.cpfAlreadyRegistered(user.cpf!!)) responseOf(
+        403, "CPF já cadastrado"
     ) else {
         service.insert(user)
         success()
     }
 
-    @PostMapping
-    fun login(user: UserLoginData): ResponseEntity<String?> {
-        val retrievedUser = service.get(user.email) ?: return responseOf(400, "User not registered")
+    @PostMapping("/login")
+    @CrossOrigin(origins = ["*"], allowedHeaders = ["*"])
+    fun login(@RequestBody user: UserLoginData): ResponseEntity<String?> {
+        if (user.email == null) return responseOf(
+            400,
+            "O campo de email não pode ficar vazio"
+        )
+        if (user.password == null) return responseOf(
+            400,
+            "O campo de senha não pode ficar vazio"
+        )
 
-        return if (service.correctPassword(user.password, retrievedUser)) success()
-        else responseOf(401, "Incorrect password")
+        val retrievedUser = service.get(user.email!!) ?: return responseOf(400, "Usuário não cadastrado")
+
+        return if (service.correctPassword(user.password!!, retrievedUser)) success(retrievedUser.cpf)
+        else responseOf(401, "A senha inserida é incorreta")
     }
+
+    @GetMapping("/{cpf}")
+    @CrossOrigin(origins = ["*"], allowedHeaders = ["*"])
+    fun getUserVote(@PathVariable(required = true) cpf: String) = service.getByCpf(cpf)?.let {
+        success(it.vote!!.toString())
+    } ?: responseOf(400, "Usuário não cadastrado")
 }

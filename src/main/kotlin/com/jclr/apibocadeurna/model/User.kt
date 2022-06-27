@@ -6,21 +6,21 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 
-@Entity
-class User(
+@Entity(name = "users")
+open class User(
     @Column(nullable = false)
-    val name: String,
+    open val name: String? = null,
     @Column(nullable = false, unique = true)
-    val cpf: String,
+    open val cpf: String? = null,
     @Column(nullable = false, unique = true)
-    val email: String,
+    open val email: String? = null,
     @Column(nullable = false)
-    val password: String,
+    open val password: String? = null,
     @Column(nullable = false)
-    val vote: VoteOption = VoteOption.NONE,
+    open var vote: VoteOption? = VoteOption.NONE,
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Int? = null
+    open val id: Int? = null
 )
 
-class UserLoginData(val email: String, val password: String)
+open class UserLoginData(open val email: String?, open val password: String?)
